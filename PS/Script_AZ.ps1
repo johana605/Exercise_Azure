@@ -11,34 +11,21 @@ Set-AzContext -SubscriptionName $subscriptionName
 $resourceGroupName = "rgworkmil"
 
 
-# Obtén los recursos en el grupo de recursos
+# grupo de recursos
 $resources = Get-AzResource -ResourceGroupName $resourceGroupName
 
-# Define las propiedades principales que deseas mostrar en la tabla
-$propertiesToShow = "Name", "ResourceType", "Location", "Tags"
+# Imprime las propiedades principales de los recursos en una tabla
+$resources | Select-Object Name, ResourceType, Location, Tags | Format-Table -AutoSize
 
-# Construye una lista personalizada de propiedades para cada recurso
-$resourceList = foreach ($resource in $resources) {
-    $resourceData = [ordered]@{}
-    foreach ($property in $propertiesToShow) {
-        $resourceData[$property] = $resource.PsObject.Properties | Where-Object {$_.Name -eq $property} | Select-Object -ExpandProperty Value
-    }
-    [PSCustomObject]$resourceData
-}
-
-# Imprime la tabla de recursos
-Write-Output "Recursos en el grupo de recursos '$resourceGroupName':"
-$resourceList | Format-Table -AutoSize
-
-# Selecciona un recurso para obtener detalles de configuración
+# detalles de configuración
 $selectedResource = $resources | Select-Object -First 1
 
-# Obtiene detalles detallados del recurso seleccionado
+# detalles detallados del primer recurso 
 $resourceDetails = Get-AzResource -ResourceId $selectedResource.ResourceId | ConvertTo-Json -Depth 10
 
 # Imprime los detalles detallados del recurso seleccionado
-Write-Output "Detalles del recurso seleccionado:"
-Write-Output $resourceDetails
+Write-Output "Detalles del recurso:"
+Write-Output $resourceDetails | Format-Table -AutoSize
 
 # Añade tags a los recursos
 $tags = @{
@@ -63,6 +50,6 @@ $tagVerification = $resources | ForEach-Object {
     }
 }
 
-# Imprime los resultados de la verificación de tags
-Write-Output "Verificación de tags en los recursos:"
+# resultados de la verificación de tags
+Write-Output "Verificando que los tags estén seteados en los recursos:"
 $tagVerification | Format-Table -AutoSize
